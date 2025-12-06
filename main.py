@@ -3,7 +3,7 @@ import json
 import os
 
 CACHE_FILE = "cache.json"
-GITHUB_USER = "octocat"  # Replace with any GitHub username
+GITHUB_USER = "Zomato"  # Replace with any GitHub username
 BASE_URL = f"https://api.github.com/users/{GITHUB_USER}/repos"
 
 
@@ -60,27 +60,30 @@ def list_repos(cache):
     choice = input("Enter option: ")
 
     if choice == "1":
-        for repo in repos[:total]:
-            print(f"{repo['name']} ({repo['language']})")
+        for idx, repo in enumerate(repos[:total], start=1):
+            print(f"{idx}. {repo['name']} ({repo['language']})")
     elif choice == "2":
         lang = input("Enter programming language: ").capitalize()
         filtered = [r for r in repos if r["language"] and r["language"].capitalize() == lang]
         print(f"\nFiltered Repositories for language = {lang}")
-        for repo in filtered[:total]:
-            print(f"{repo['name']} ({repo['language']})")
+        for idx, repo in enumerate(filtered[:total], start=1):
+            print(f"{idx}. {repo['name']} ({repo['language']})")
     else:
         print("Invalid choice.")
 
 
-def view_repo_by_name(cache):
-    repo_name = input("Enter repository name: ")
+def view_repo_by_number(cache):
     repos = cache.get("repos", [])
-    match = next((r for r in repos if r["name"].lower() == repo_name.lower()), None)
-    if not match:
-        print("Repository not found.")
+    total = min(100, len(repos))
+    repo_number = input(f"Enter repository number (1-{total}): ")
+    
+    if not repo_number.isdigit() or not (1 <= int(repo_number) <= total):
+        print("Invalid repository number.")
         return
+    
+    selected_repo = repos[int(repo_number) - 1]
     print("\nRepository Details:")
-    print(json.dumps(match, indent=4))
+    print(json.dumps(selected_repo, indent=4))
 
 
 def main():
@@ -89,7 +92,7 @@ def main():
     while True:
         print("\n====== GitHub API Menu ======")
         print("1. List Repositories")
-        print("2. View Repository By Name")
+        print("2. View Repository By Number")
         print("3. Exit")
 
         choice = input("Enter choice: ")
@@ -97,7 +100,7 @@ def main():
         if choice == "1":
             list_repos(cache)
         elif choice == "2":
-            view_repo_by_name(cache)
+            view_repo_by_number(cache)
         elif choice == "3":
             print("Exiting...")
             break
