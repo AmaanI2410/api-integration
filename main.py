@@ -3,7 +3,8 @@ import json
 import os
 
 CACHE_FILE = "cache.json"
-BASE_URL = "https://api.github.com/users/octocat/repos"  # Replace 'octocat' with any GitHub username
+GITHUB_USER = "octocat"  # Replace with any GitHub username
+BASE_URL = f"https://api.github.com/users/{GITHUB_USER}/repos"
 
 
 def load_cache():
@@ -23,7 +24,7 @@ def save_cache(data):
 
 def fetch_data():
     try:
-        response = requests.get(BASE_URL, timeout=5)
+        response = requests.get(BASE_URL, timeout=10)
         response.raise_for_status()
         return response.json()
     except requests.exceptions.Timeout:
@@ -50,29 +51,31 @@ def initialize_cache():
 
 def list_repos(cache):
     repos = cache.get("repos", [])
-    print("\nTotal repositories:", len(repos))
+    total = min(100, len(repos))
+    print(f"\nTotal Repositories: {len(repos)} (Showing first {total})\n")
+    
     print("1. List all repositories")
-    print("2. Filter by language")
+    print("2. Filter by programming language")
 
     choice = input("Enter option: ")
 
     if choice == "1":
-        for repo in repos[:10]:
-            print(f"{repo['id']}. {repo['name']}")
+        for repo in repos[:total]:
+            print(f"{repo['name']} ({repo['language']})")
     elif choice == "2":
         lang = input("Enter programming language: ").capitalize()
-        filtered = [r for r in repos if r["language"] == lang]
-        print(f"\nFiltered repositories for language = {lang}")
-        for repo in filtered:
-            print(f"{repo['id']}. {repo['name']}")
+        filtered = [r for r in repos if r["language"] and r["language"].capitalize() == lang]
+        print(f"\nFiltered Repositories for language = {lang}")
+        for repo in filtered[:total]:
+            print(f"{repo['name']} ({repo['language']})")
     else:
         print("Invalid choice.")
 
 
-def view_repo_by_id(cache):
-    repo_id = input("Enter repository ID: ")
+def view_repo_by_name(cache):
+    repo_name = input("Enter repository name: ")
     repos = cache.get("repos", [])
-    match = next((r for r in repos if str(r["id"]) == repo_id), None)
+    match = next((r for r in repos if r["name"].lower() == repo_name.lower()), None)
     if not match:
         print("Repository not found.")
         return
@@ -86,7 +89,7 @@ def main():
     while True:
         print("\n====== GitHub API Menu ======")
         print("1. List Repositories")
-        print("2. View Repository By ID")
+        print("2. View Repository By Name")
         print("3. Exit")
 
         choice = input("Enter choice: ")
@@ -94,7 +97,7 @@ def main():
         if choice == "1":
             list_repos(cache)
         elif choice == "2":
-            view_repo_by_id(cache)
+            view_repo_by_name(cache)
         elif choice == "3":
             print("Exiting...")
             break
