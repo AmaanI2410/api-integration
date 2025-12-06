@@ -6,7 +6,7 @@ CACHE_FILE = "cache.json"
 BASE_URL = "https://jsonplaceholder.typicode.com"
 
 
-# Load cache
+
 def load_cache():
     if os.path.exists(CACHE_FILE):
         try:
@@ -17,13 +17,13 @@ def load_cache():
     return {}
 
 
-# Save cache
+
 def save_cache(data):
     with open(CACHE_FILE, "w") as f:
         json.dump(data, f, indent=4)
 
 
-# API fetch with error handling
+
 def fetch_data(endpoint):
     url = f"{BASE_URL}/{endpoint}"
     try:
@@ -32,18 +32,18 @@ def fetch_data(endpoint):
         return response.json()
 
     except requests.exceptions.Timeout:
-        print("❌ Error: Request timed out.")
+        print(" Error: Request timed out.")
     except requests.exceptions.ConnectionError:
-        print("❌ Error: Check your internet connection.")
+        print(" Error: Check your internet connection.")
     except requests.exceptions.HTTPError as e:
-        print(f"❌ HTTP Error: {e}")
+        print(f" HTTP Error: {e}")
     except ValueError:
-        print("❌ Error: Invalid JSON received.")
+        print(" Error: Invalid JSON received.")
 
     return None
 
 
-# Initialize data and cache it
+
 def initialize_cache():
     cache = load_cache()
 
@@ -63,7 +63,7 @@ def initialize_cache():
     return cache
 
 
-# List posts + filter option
+
 def list_posts(cache):
     posts = cache.get("posts", [])
 
@@ -89,7 +89,6 @@ def list_posts(cache):
         print("❌ Invalid choice.")
 
 
-# Show full post by ID
 def view_post_by_id(cache):
     post_id = input("Enter post ID: ")
 
@@ -105,7 +104,6 @@ def view_post_by_id(cache):
     print(json.dumps(match, indent=4))
 
 
-# CLI Menu
 def main():
     cache = initialize_cache()
 
