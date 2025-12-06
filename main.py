@@ -3,8 +3,7 @@ import json
 import os
 
 CACHE_FILE = "cache.json"
-BASE_URL = "https://jsonplaceholder.typicode.com"
-
+BASE_URL = "https://api.github.com/users/octocat/repos"  # Replace 'octocat' with any GitHub username
 
 
 def load_cache():
@@ -17,90 +16,67 @@ def load_cache():
     return {}
 
 
-
 def save_cache(data):
     with open(CACHE_FILE, "w") as f:
         json.dump(data, f, indent=4)
 
 
-
-def fetch_data(endpoint):
-    url = f"{BASE_URL}/{endpoint}"
+def fetch_data():
     try:
-        response = requests.get(url, timeout=5)
+        response = requests.get(BASE_URL, timeout=5)
         response.raise_for_status()
         return response.json()
-
     except requests.exceptions.Timeout:
-        print(" Error: Request timed out.")
+        print("Error: Request timed out.")
     except requests.exceptions.ConnectionError:
-        print(" Error: Check your internet connection.")
+        print("Error: Check your internet connection.")
     except requests.exceptions.HTTPError as e:
-        print(f" HTTP Error: {e}")
+        print(f"HTTP Error: {e}")
     except ValueError:
-        print(" Error: Invalid JSON received.")
-
+        print("Error: Invalid JSON received.")
     return None
-
 
 
 def initialize_cache():
     cache = load_cache()
-
-    if "posts" not in cache:
-        print("📥 Fetching posts...")
-        posts = fetch_data("posts")
-        if posts:
-            cache["posts"] = posts
-
-    if "users" not in cache:
-        print("📥 Fetching users...")
-        users = fetch_data("users")
-        if users:
-            cache["users"] = users
-
-    save_cache(cache)
+    if "repos" not in cache:
+        print("Fetching GitHub repositories...")
+        repos = fetch_data()
+        if repos:
+            cache["repos"] = repos
+            save_cache(cache)
     return cache
 
 
+def list_repos(cache):
+    repos = cache.get("repos", [])
+    print("\nTotal repositories:", len(repos))
+    print("1. List all repositories")
+    print("2. Filter by language")
 
-def list_posts(cache):
-    posts = cache.get("posts", [])
-
-    print("\n📌 Total Posts:", len(posts))
-    print("1️⃣  List all posts")
-    print("2️⃣  Filter by userId")
-
-    choice = input("➡️  Enter option: ")
+    choice = input("Enter option: ")
 
     if choice == "1":
-        for p in posts[:10]:
-            print(f"{p['id']}. {p['title']}")
-
+        for repo in repos[:10]:
+            print(f"{repo['id']}. {repo['name']}")
     elif choice == "2":
-        user_id = input("Enter userId: ")
-        filtered = [p for p in posts if str(p["userId"]) == user_id]
-
-        print(f"\n🎯 Filtered Results for userId={user_id}")
-        for p in filtered:
-            print(f"{p['id']}. {p['title']}")
-
+        lang = input("Enter programming language: ").capitalize()
+        filtered = [r for r in repos if r["language"] == lang]
+        print(f"\nFiltered repositories for language = {lang}")
+        for repo in filtered:
+            print(f"{repo['id']}. {repo['name']}")
     else:
-        print("❌ Invalid choice.")
+        print("Invalid choice.")
 
 
-def view_post_by_id(cache):
-    post_id = input("Enter post ID: ")
-
-    posts = cache.get("posts", [])
-
-    match = next((p for p in posts if str(p["id"]) == post_id), None)
-
+def view_repo_by_id(cache):
+    repo_id = input("Enter repository ID: ")
+    repos = cache.get("repos", [])
+    match = next((r for r in repos if str(r["id"]) == repo_id), None)
     if not match:
-        print("❌ Post not found.")
+        print("Repository not found.")
         return
-
-    print("\n📝 POST DETAILS")
+    print("\nRepository Details:")
     print(json.dumps(match, indent=4))
 
 
@@ -108,22 +84,22 @@ def main():
     cache = initialize_cache()
 
     while True:
-        print("\n========== API Menu ==========")
-        print("1. List Posts")
-        print("2. View Post By ID")
+        print("\n====== GitHub API Menu ======")
+        print("1. List Repositories")
+        print("2. View Repository By ID")
         print("3. Exit")
 
-        choice = input("➡️  Enter choice: ")
+        choice = input("Enter choice: ")
 
         if choice == "1":
-            list_posts(cache)
+            list_repos(cache)
         elif choice == "2":
-            view_post_by_id(cache)
+            view_repo_by_id(cache)
         elif choice == "3":
-            print("👋 Exiting...")
+            print("Exiting...")
             break
         else:
-            print("❌ Invalid input!")
+            print("Invalid input.")
 
 
 if __name__ == "__main__":
